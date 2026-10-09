@@ -1,0 +1,6 @@
+{
+  "name": "S-IMPEL DIGITAL",
+  "description": "Sistem Penilaian Digital dan Voting Berbayar Terpadu untuk Perlombaan dan Kompetisi",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

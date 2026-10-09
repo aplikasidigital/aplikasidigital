@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S-IMPEL DIGITAL - Sistem Penilaian Digital & Voting Berbayar</title>
+    <meta name="description" content="S-IMPEL DIGITAL - Sistem Penilaian Digital dan Voting Berbayar Terpadu untuk Perlombaan dan Kompetisi." />
+    <meta property="og:title" content="S-IMPEL DIGITAL - Sistem Penilaian Digital & Voting Berbayar" />
+    <meta property="og:description" content="S-IMPEL DIGITAL - Sistem Penilaian Digital dan Voting Berbayar Terpadu untuk Perlombaan dan Kompetisi." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 12mm 10mm;
+        }
+        body {
+          background: white !important;
+          color: black !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .print-only {
+          display: block !important;
+        }
+        .page-break-after {
+          page-break-after: always;
+        }
+        .page-break-inside-avoid {
+          page-break-inside: avoid;
+        }
+      }
+      @media screen {
+        .print-only {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-900 text-slate-100 antialiased font-sans">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
