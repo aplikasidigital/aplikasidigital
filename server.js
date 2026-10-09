@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST && !process.env.HOST.includes(' ') ? process.env.HOST : '0.0.0.0';
 const distPath = path.join(__dirname, 'dist');
 
 // Middleware CORS Dinamis & Basic Security Headers
@@ -21,6 +21,84 @@ app.use((req, res, next) => {
     return res.sendStatus(200);
   }
   next();
+});
+
+// JSON Body Parser untuk API Sync
+app.use(express.json({ limit: '10mb' }));
+
+// ==============================================================
+// LAPISAN LIVE-SERVER REAL-TIME: SERVER-SENT EVENTS (SSE)
+// ==============================================================
+let sseClients = [];
+const serverStateStore = {};
+
+// 1. Endpoint Stream SSE untuk seluruh klien publik yang terhubung
+app.get('/api/live-events', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || '*'
+  });
+
+  const clientId = 'sse_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  const client = { id: clientId, res };
+  sseClients.push(client);
+
+  // Kirim sinyal selamat datang & hitungan koneksi aktif
+  res.write(`data: ${JSON.stringify({ type: 'connected', clientId, onlineCount: sseClients.length })}\n\n`);
+
+  // Heartbeat berkala (25 detik) menjaga koneksi HTTP tidak terputus
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': heartbeat\n\n');
+    } catch {
+      clearInterval(heartbeat);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients = sseClients.filter(c => c.id !== clientId);
+  });
+});
+
+// 2. Endpoint Publikasi: Menerima pembaruan dari satu pengguna & menyebarkannya ke semua pengguna
+app.post('/api/live-sync', (req, res) => {
+  const { key, data, senderId } = req.body || {};
+  if (!key) {
+    return res.status(400).json({ error: 'Missing key' });
+  }
+
+  if (data !== undefined) {
+    serverStateStore[key] = data;
+  }
+
+  const payload = JSON.stringify({
+    type: 'sync',
+    key,
+    data,
+    senderId,
+    timestamp: Date.now()
+  });
+
+  // Siarkan ke seluruh klien SSE yang sedang terhubung
+  sseClients.forEach(client => {
+    try {
+      client.res.write(`data: ${payload}\n\n`);
+    } catch {}
+  });
+
+  res.status(200).json({ success: true, activeClients: sseClients.length });
+});
+
+// 3. Endpoint Snapshot State Server
+app.get('/api/live-state', (req, res) => {
+  res.json({
+    onlineCount: sseClients.length,
+    state: serverStateStore,
+    timestamp: Date.now()
+  });
 });
 
 // Serve static files from the build directory

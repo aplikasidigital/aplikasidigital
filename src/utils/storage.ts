@@ -10,6 +10,7 @@ import {
   VoteTransaction,
   VotingCategory
 } from '../types';
+import { LiveSyncService } from './liveSync';
 
 export const STORAGE_KEYS = {
   USERS: 'simpel_users_v2',
@@ -638,6 +639,13 @@ export class StorageService {
     if (this.isChannelInitialized || typeof window === 'undefined') return;
     this.isChannelInitialized = true;
 
+    // Aktifkan Lapisan Live-Sync Server Publik (Supabase Realtime & SSE)
+    try {
+      LiveSyncService.init();
+    } catch (e) {
+      console.warn('[StorageService] Inisialisasi LiveSync notice:', e);
+    }
+
     if (syncChannel) {
       syncChannel.onmessage = (event) => {
         const key = event.data?.key || 'all';
@@ -681,6 +689,53 @@ export class StorageService {
     if (syncChannel) {
       try {
         syncChannel.postMessage({ key, data, timestamp: Date.now() });
+      } catch {}
+    }
+
+    // 4. Siarkan ke Live Server Publik & seluruh perangkat (Supabase Realtime & SSE)
+    try {
+      LiveSyncService.publish(key, data);
+    } catch {}
+  }
+
+  /**
+   * Menerima pembaruan data yang berasal dari Live Server publik / pengguna lain
+   * Memperbarui cache lokal & localStorage, lalu memicu React re-render tanpa memancarkan ulang ke server.
+   */
+  static handleRemoteSync(key: string, data: any): void {
+    if (!key) return;
+
+    if (data !== undefined && data !== null) {
+      try {
+        if (key === STORAGE_KEYS.SETTINGS) {
+          this.cachedSettings = { ...DEFAULT_SETTINGS, ...data };
+          localStorage.setItem(key, JSON.stringify(data));
+        } else if (key === STORAGE_KEYS.VOTE_TRANSACTIONS) {
+          this.cachedTransactions = data;
+          localStorage.setItem(key, JSON.stringify(data));
+        } else if (key === 'RESET_ALL') {
+          // Reset action
+        } else if (typeof data === 'object') {
+          localStorage.setItem(key, JSON.stringify(data));
+        } else {
+          localStorage.setItem(key, String(data));
+        }
+      } catch (err) {
+        console.warn('[StorageService] Gagal memperbarui cache lokal dari remote sync:', err);
+      }
+    }
+
+    // Beritahukan seluruh listener UI lokal (React state)
+    this.listeners.forEach(fn => {
+      try { fn(key, data); } catch (e) { console.error(e); }
+    });
+
+    // Dispatch DOM event untuk komponen lokal
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('simpel:realtime-sync', {
+          detail: { key, data, fromRemote: true, timestamp: Date.now() }
+        }));
       } catch {}
     }
   }

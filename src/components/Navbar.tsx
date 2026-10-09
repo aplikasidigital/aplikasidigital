@@ -3,6 +3,7 @@ import {
   User,
   AppSettings
 } from '../types';
+import { LiveSyncService, LiveSyncStatus } from '../utils/liveSync';
 import {
   Trophy,
   Shield,
@@ -34,8 +35,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [liveSync, setLiveSync] = useState<LiveSyncStatus>(LiveSyncService.getStatus());
 
   useEffect(() => {
+    const unsubLiveSync = LiveSyncService.subscribeStatus(setLiveSync);
     const updateTime = () => {
       const now = new Date();
       setCurrentTime(
@@ -49,7 +52,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      unsubLiveSync();
+    };
   }, []);
 
   return (
@@ -88,10 +94,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center Live Clock */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded-full text-xs">
-          <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
-          <span className="font-mono text-slate-200 font-bold">{currentTime}</span>
+        {/* Center Live Clock & Live-Sync Indicator */}
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3.5 py-1.5 rounded-full text-xs">
+            <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
+            <span className="font-mono text-slate-200 font-bold">{currentTime}</span>
+          </div>
+
+          <div
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-emerald-500/30 text-[11px] font-mono"
+            title={liveSync.isConnected ? `Terhubung ke Live-Sync Server via ${liveSync.transport.toUpperCase()}` : 'Menghubungkan ke Live-Sync Server...'}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${liveSync.isConnected ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${liveSync.isConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+            </span>
+            <span className="text-emerald-300 font-semibold">
+              {liveSync.isConnected ? `Live-Sync (${liveSync.onlineCount} Online)` : 'Live-Sync Ready'}
+            </span>
+          </div>
         </div>
 
         {/* Right Navigation & User Actions */}
