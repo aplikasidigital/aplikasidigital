@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { EventRuleItem, EventScheduleItem, PublicEventInfo } from '../../types';
+import { AdminSupabaseManager } from './AdminSupabaseManager';
 import {
   Calendar,
   BookOpen,
@@ -169,6 +170,13 @@ export const AdminScheduleRulesTab: React.FC<AdminScheduleRulesTabProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* SECTION 0: SUPABASE REAL-TIME CONTENT MANAGER */}
+      <AdminSupabaseManager
+        publicInfo={publicInfo}
+        onPublicInfoUpdate={onSavePublicInfo}
+        onShowNotification={onShowNotification}
+      />
+
       {/* SECTION 1: CRUD SUSUNAN JADWAL & AGENDA */}
       <div className="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-700 pb-4">

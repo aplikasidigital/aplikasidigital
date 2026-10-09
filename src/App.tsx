@@ -8,6 +8,7 @@ import {
   VotingCategory
 } from './types';
 import { StorageService } from './utils/storage';
+import { SupabaseService } from './utils/supabase';
 import { Navbar } from './components/Navbar';
 import { AudioPlayer } from './components/AudioPlayer';
 import { LandingPage } from './views/LandingPage';
@@ -67,6 +68,35 @@ export default function App() {
       }
     });
 
+    // 1. Ambil data teks dinamis awal dari Supabase
+    SupabaseService.fetchEventDescription().then((res) => {
+      if (res.text) {
+        setPublicInfo((prev) => {
+          if (prev.eventDescription !== res.text) {
+            const updated = { ...prev, eventDescription: res.text };
+            StorageService.savePublicInfo(updated);
+            return updated;
+          }
+          return prev;
+        });
+      }
+    });
+
+    // 2. Pasang Real-Time Subscription dari Supabase
+    // Setiap kali admin mengedit di panel admin, tampilan di sisi pengguna langsung berubah tanpa refresh!
+    const unsubscribeSupabase = SupabaseService.initRealtimeSubscription((newText) => {
+      setPublicInfo((prev) => {
+        const updated = { ...prev, eventDescription: newText };
+        StorageService.savePublicInfo(updated);
+        return updated;
+      });
+      setSettings((prev) => {
+        const updated = { ...prev, competitionDescription: newText };
+        StorageService.saveSettings(updated);
+        return updated;
+      });
+    });
+
     // Periodic lightweight sync heartbeat (2.5 seconds) to ensure 100% sync reliability
     const intervalId = window.setInterval(() => {
       setCategories(StorageService.getCategories());
@@ -76,6 +106,7 @@ export default function App() {
 
     return () => {
       unsubscribe();
+      unsubscribeSupabase();
       window.clearInterval(intervalId);
     };
   }, []);

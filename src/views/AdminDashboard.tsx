@@ -24,6 +24,8 @@ import { ProofModal } from '../components/ProofModal';
 import { AdminApprovalTab } from '../components/admin/AdminApprovalTab';
 import { AdminVotingTab } from '../components/admin/AdminVotingTab';
 import { AdminScheduleRulesTab } from '../components/admin/AdminScheduleRulesTab';
+import { AdminSupabaseManager } from '../components/admin/AdminSupabaseManager';
+import { SupabaseService } from '../utils/supabase';
 import {
   Trophy,
   Users,
@@ -790,6 +792,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       // 2. Teruskan perubahan langsung ke state aplikasi pusat
       onSettingsUpdate(tempSettings);
 
+      // Sinkronkan ke Supabase Real-Time jika deskripsi perlombaan diatur
+      if (tempSettings.competitionDescription) {
+        SupabaseService.saveEventDescription(tempSettings.competitionDescription).catch(sbErr => {
+          console.warn('[Supabase Auto-Sync]:', sbErr);
+        });
+      }
+
       // 3. Sinkronisasi pemutar audio BGM jika musik latar kustom diatur
       try {
         if (tempSettings.bgmAudioUrl && !tempSettings.bgmAudioUrl.startsWith('idb:')) {
@@ -1294,6 +1303,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB 8: SETTINGS */}
       {activeTab === 'SETTINGS' && (
         <div className="space-y-6">
+          {/* SUPABASE REAL-TIME DATABASE MANAGER */}
+          <AdminSupabaseManager
+            publicInfo={publicInfo}
+            onPublicInfoUpdate={onPublicInfoUpdate}
+            onShowNotification={showNotification}
+          />
+
           {!isSuperAdmin ? (
             <div className="p-6 rounded-3xl bg-red-950/80 border border-red-500/50 text-red-200">
               <h4 className="font-bold text-base flex items-center gap-2">

@@ -105,6 +105,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-bold tracking-wide">
             <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
             <span>PORTAL RESMI S-IMPEL DIGITAL 2026</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-[11px] text-emerald-400 font-mono font-medium">REAL-TIME SYNC</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight uppercase font-serif drop-shadow-sm">
@@ -605,14 +607,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ============================================================== */}
       {activeTab === 'INFO' && (
         <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-          <div className="border-b border-slate-800 pb-4">
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-400" />
-              Profil Lengkap & Informasi Pelaksanaan Kegiatan
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Rangkaian pelaksanaan Festival & Penilaian Digital Terintegrasi.
-            </p>
+          <div className="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+                Profil Lengkap &amp; Informasi Pelaksanaan Kegiatan
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                Rangkaian pelaksanaan Festival &amp; Penilaian Digital Terintegrasi.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] self-start sm:self-auto">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Supabase Real-Time Aktif</span>
+            </div>
           </div>
 
           <div className="prose prose-invert max-w-none text-xs sm:text-sm text-slate-300 leading-relaxed space-y-4">
